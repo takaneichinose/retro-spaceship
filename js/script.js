@@ -210,7 +210,7 @@ class Script {
   setEvents() {
     var script = this;
 
-    script.canvas.addEventListener("keydown", function(evt) {
+    window.addEventListener("keydown", function(evt) {
       if (script.keyArray.indexOf(evt.keyCode) >= 0) {
         script.keyState[evt.keyCode] = true;
       }
@@ -236,7 +236,7 @@ class Script {
       }
     }, true);
 
-    script.canvas.addEventListener("keyup", function(evt) {
+    window.addEventListener("keyup", function(evt) {
       if (script.keyArray.indexOf(evt.keyCode) >= 0) {
         script.keyState[evt.keyCode] = false;
       }
