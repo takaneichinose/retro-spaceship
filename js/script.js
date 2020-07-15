@@ -200,6 +200,8 @@ class Script {
         timer: 0
       }
     };
+    this.gameOverShowTime = 100;
+    this.gameOverCount = 0;
   }
 
   /***********************/
@@ -218,12 +220,18 @@ class Script {
       }
       if (evt.keyCode === 32 && script.data.end) {
         script.keyState[32] = false;
+        
+        if (script.gameOverCount < script.gameOverShowTime) {
+          return;
+        }
+
         script.data.start = false;
         script.data.end = false;
         script.data.spaceship.life = 3;
         script.data.spaceship.score = 0;
         script.data.spaceship.fire.spawn = [];
         script.data.bacteria.spawn = [];
+        script.gameOverCount = 0;
         script.setImages();
       }
     }, true);
@@ -244,6 +252,12 @@ class Script {
   fireToBacteriaCollision(i) {
     for (var j = 0; j < this.data.bacteria.spawn.length; j++) {
       if (
+        typeof this.data.spaceship.fire.spawn[i] === "undefined" ||
+        typeof this.data.bacteria.spawn[j] === "undefined") {
+        continue;
+      }
+      
+      if (
         this.data.spaceship.fire.spawn[i].y < (this.data.bacteria.spawn[j].y + this.data.bacteria.height)
         && (this.data.spaceship.fire.spawn[i].y + this.data.spaceship.fire.height) > this.data.bacteria.spawn[j].y
         && this.data.spaceship.fire.spawn[i].x < (this.data.bacteria.spawn[j].x + this.data.bacteria.width)
@@ -257,6 +271,10 @@ class Script {
   }
 
   bacteriaToSpaceShipCollision(i) {
+    if (typeof this.data.bacteria.spawn[i] === "undefined") {
+      return;
+    }
+    
     if (
       (this.data.bacteria.spawn[i].y + this.data.bacteria.height) > this.data.spaceship.position.y
       && this.data.bacteria.spawn[i].y < (this.data.spaceship.position.y + this.data.spaceship.height)
@@ -377,7 +395,11 @@ class Script {
   }
 
   moveFire(i) {
+    if (typeof this.data.spaceship.fire.spawn[i] === "undefined") {
+      return;
+    }
     this.data.spaceship.fire.spawn[i].y -= this.data.spaceship.fire.moveSpeed;
+
     if (this.data.spaceship.fire.spawn[i].y + this.data.spaceship.fire.height < 0) {
       this.data.spaceship.fire.spawn.splice(i, 1);
     }
@@ -385,6 +407,9 @@ class Script {
 
   drawFire() {
     for (var i = 0; i < this.data.spaceship.fire.spawn.length; i++) {
+      if (typeof this.data.spaceship.fire.spawn[i] === "undefined") {
+        continue;
+      }
       this.context.fillStyle = "white";
       this.context.fillRect(
         this.data.spaceship.fire.spawn[i].x,
@@ -420,6 +445,10 @@ class Script {
   }
 
   moveBacteria(i) {
+    if (typeof this.data.bacteria.spawn[i] === "undefined") {
+      return;
+    }
+    
     if (this.data.bacteria.spawn[i].y > this.data.canvas.height) {
       this.data.bacteria.spawn.splice(i, 1);
       this.data.spaceship.life--;
@@ -432,6 +461,9 @@ class Script {
 
   drawBacteria() {
     for (var i = 0; i < this.data.bacteria.spawn.length; i++) {
+      if (typeof this.data.bacteria.spawn[i] === "undefined") {
+        continue;
+      }
       this.moveBacteria(i);
       this.context.drawImage(
         this.data.bacteria.image,
@@ -506,7 +538,10 @@ class Script {
       this.data.images.gameover.width,
       this.data.images.gameover.height
     );
+    
     script.data.start = false;
+    
+    this.gameOverCount++;
   }
 
   setImages() {
@@ -516,7 +551,10 @@ class Script {
       this.setControls();
       this.setBegin();
     }
-    else if (script.data.start && script.data.end) {
+    else if (
+      (script.data.start && script.data.end) ||
+      (!script.data.start && script.data.end)
+    ) {
       this.setGameOver();
       this.drawLife();
       this.drawScoreText();
@@ -550,8 +588,7 @@ script.initialize(function startAnimation() {
   if (script.data.start && !script.data.end) {
     script.render();
   }
-  else if (script.data.start && script.data.end) {
+  else if (!script.data.start || script.data.end) {
     script.setImages();
   }
 });
-
